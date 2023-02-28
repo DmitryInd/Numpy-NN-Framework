@@ -1,5 +1,6 @@
 from nn.loss_functions.loss import Loss
 
+
 def mse_loss(inpt, target):
     """Реализует функцию ошибки
 

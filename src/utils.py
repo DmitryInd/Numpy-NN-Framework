@@ -1,7 +1,8 @@
 import time
 
+
 def progress_bar(iterable, text='Epoch progress', end=''):
-    """Мониториг выполнения эпохи
+    """Мониторинг выполнения эпохи
 
     ---------
     Параметры
@@ -54,6 +55,7 @@ def progress_bar(iterable, text='Epoch progress', end=''):
         approx_time = int(cur_time / it * (max_num - it))
         cur_time = int(cur_time)
         print(end, end='')
+
 
 def gradient_check(x, y, neural_net):
     # TODO: Реализуйте проверку градиента

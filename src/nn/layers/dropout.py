@@ -1,13 +1,25 @@
-from module.parameters import Parameters
+import numpy.random
+
+from nn.module.parameters import Parameters
 import numpy as np
 
-class Tanh:
-    """Реализует гиперболический тангенс"""
 
-    def __init__(self):
+class Dropout:
+    """Реализует dropout
+
+    ---------
+    Параметры
+    ---------
+    p : float (default=0.5)
+        Вероятность зануления элемента
+    """
+
+    def __init__(self, p=0.5):
+        self.p = p
+
         self.params = Parameters(1)
-
-        self.out = None
+        self.regime = "Train"
+        self.mask = None
 
     def forward(self, inpt):
         """Реализует forward-pass
@@ -24,8 +36,11 @@ class Tanh:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        # TODO: Реализовать рассчет tanh функции активации
-        self.out = None
+        if self.regime == "Eval":
+            return inpt
+
+        self.mask = numpy.random.binomial(1, 1 - self.p, inpt.shape)
+        self.out = inpt * self.mask / (1 - self.p)
 
         return self.out
 
@@ -47,17 +62,19 @@ class Tanh:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов
-        input_grads = None
+        if self.regime == "Eval":
+            raise RuntimeError("Нельзя посчитать градиенты в режиме оценки")
+
+        input_grads = self.mask / (1 - self.p) @ grads
         return input_grads
 
     def _train(self):
         """Переводит модель в режим обучения"""
-        pass
+        self.regime = "Train"
 
     def _eval(self):
         """Переводит модель в режим оценивания"""
-        pass
+        self.regime = "Eval"
 
     def __repr__(self):
-        return "Tanh()"
+        return f"Dropout(p={self.p})"

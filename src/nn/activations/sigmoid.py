@@ -1,4 +1,4 @@
-from module.parameters import Parameters
+from nn.module.parameters import Parameters
 import numpy as np
 
 
@@ -25,8 +25,7 @@ class Sigmoid:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        # TODO: Реализовать рассчет sigmoid функции активации
-        self.out = None
+        self.out = 1 / (1 - np.exp(inpt))
 
         return self.out
 
@@ -48,8 +47,7 @@ class Sigmoid:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов
-        input_grads = None
+        input_grads = self.out * (1 - self.out) @ grads
         return input_grads
 
     def _train(self):

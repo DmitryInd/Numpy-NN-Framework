@@ -1,5 +1,6 @@
 from nn.module.tensor import Tensor
 
+
 class Sequential:
     """Определяет структуру нейронной сети
 
@@ -9,6 +10,7 @@ class Sequential:
     args
         Последовательность элементов нейронной сети
     """
+
     def __init__(self, *args):
         if len(args) == 0:
             msg = "В последовательности должен быть хотя бы один элемент"

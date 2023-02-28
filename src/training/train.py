@@ -7,6 +7,7 @@ from dataset.dataloader import Dataloader
 from utils import progress_bar
 from nn.loss_functions.hinge_loss import hinge_loss
 
+
 def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
           valid_dataset=None, timer=True, return_history=True, step=1,
           visualize_train=True, optim_method="Adam", alpha1=None, alpha2=None):
@@ -100,8 +101,7 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
             valid_loss_history = []
             valid_acc_history = []
 
-    description = [('Train loss', 0, 4)]
-    description.append(('Train acc', 0, 4))
+    description = [('Train loss', 0, 4), ('Train acc', 0, 4)]
 
     if valid_dataset:
         description.append(('Valid loss', 0, 4))
@@ -120,9 +120,14 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
         epoch_start_time = time.time()
         model.train()
         dataloader = Dataloader(dataset, batch_size=batch_size)
+
+        train_loss = 0
         for vecs, labels in progress_bar(dataloader):
-            # TODO: Реализовать обучение модели на батче данных
-            pass
+            loss_function = hinge_loss(model(vecs), labels)
+            train_loss += loss_function.loss
+            optimizer.zero_grad()
+            loss_function.backward()
+            optimizer.step()
 
         if (epoch + 1) % step == 0 or (epoch + 1) == epochs:
             if (epoch + 1) == epochs and ((epoch + 1) % step != 0):
@@ -134,10 +139,14 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
             dataloader = Dataloader(dataset, batch_size=len(dataset),
                                     is_train=False)
 
+            train_acc = 0
+            sample_number = 0
             for vecs, labels in progress_bar(dataloader,
                                              text='Evaluating train'):
-                # TODO: Реализовать рассчет accuracy модели на батче данных
-                pass
+                pred_labels = np.argmax(model(vecs).array, axis=-1)
+                train_acc += np.sum(pred_labels == labels)
+                sample_number += len(labels)
+            train_acc /= sample_number
 
             values['Train loss'] = train_loss
             values['Train acc'] = train_acc
@@ -168,10 +177,16 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
                                               batch_size=len(valid_dataset),
                                               is_train=False)
 
+                valid_loss = 0
+                valid_acc = 0
+                sample_number = 0
                 for vecs, labels in progress_bar(valid_dataloader,
                                                  text='Evaluating valid'):
-                    # TODO: Реализовать рассчет accuracy модели на батче данных
-                    pass
+                    y_pred = model(vecs)
+                    valid_loss += hinge_loss(y_pred, labels).loss
+                    valid_acc += np.sum(np.argmax(y_pred.array, axis=-1) == labels)
+                    sample_number += len(labels)
+                valid_acc /= sample_number
 
                 values['Valid loss'] = valid_loss
                 values['Valid acc'] = valid_acc
@@ -190,7 +205,7 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
     if return_history:
         if valid_dataset:
             return train_loss_history, valid_loss_history, \
-                   train_acc_history, valid_acc_history
+                train_acc_history, valid_acc_history
         else:
             return train_loss_history, train_acc_history
     else:

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Dataloader:
     """Загрузчик данных
 
@@ -16,6 +17,7 @@ class Dataloader:
         Если True, перед выдачей перемешивает датасет
         Если False, то не перемешивает
     """
+
     def __init__(self, dataset, batch_size=1000, is_train=True):
         self.dataset = dataset
         self.batch_size = batch_size

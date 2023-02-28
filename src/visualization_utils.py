@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def visualize_cls_preds(X, model, th=0.5, borders=(-0.1, 0.5, 1.1), preds_dim=1,
                         colors=('tab:blue', 'tab:orange'), alpha=0.3):
     """Наглядная визуализация 2D двуклассовой классификации

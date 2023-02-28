@@ -1,11 +1,13 @@
 import numpy as np
 
+
 class Parameters:
     """Здесь будут храниться параметры и их градиенты
 
     shape : tuple or int
         Определяет размер массива параметров
     """
+
     def __init__(self, shape):
         self.shape = shape
         self.params = np.zeros(shape)
@@ -23,6 +25,5 @@ class Parameters:
             Метод инициализации параметров
             Пока доступен только 'kaiming'
         """
-        if method=='kaiming':
-            # TODO: Реализовать инициализацию параметров модели методом Kaiming
-            self.params = None
+        if method == 'kaiming':
+            self.params = np.random.normal(0, np.sqrt(2/self.shape[0]), self.shape)

@@ -1,23 +1,14 @@
-from module.parameters import Parameters
 import numpy as np
+from nn.module.parameters import Parameters
 
 
-class Dropout:
-    """Реализует dropout
+class ReLU:
+    """Реализует ReLU"""
 
-    ---------
-    Параметры
-    ---------
-    p : float (default=0.5)
-        Вероятность зануления элемента
-    """
-
-    def __init__(self, p=0.5):
-        self.p = p
-
+    def __init__(self):
         self.params = Parameters(1)
-        self.regime = "Train"
-        self.mask = None
+
+        self.out = None
 
     def forward(self, inpt):
         """Реализует forward-pass
@@ -34,12 +25,7 @@ class Dropout:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        if self.regime == "Eval":
-            return inpt
-
-        # TODO: Реализовать dropout
-        self.mask = None
-        self.out =None
+        self.out = np.maximum(0, inpt)
 
         return self.out
 
@@ -61,19 +47,16 @@ class Dropout:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        if self.regime == "Eval":
-            raise RuntimeError("Нельзя посчитать градиенты в режиме оценки")
-        # TODO: Реализовать рассчет градиента с dropout
-        input_grads = None
+        input_grads = (self.out > 0) * grads
         return input_grads
 
     def _train(self):
         """Переводит модель в режим обучения"""
-        self.regime = "Train"
+        pass
 
     def _eval(self):
         """Переводит модель в режим оценивания"""
-        self.regime = "Eval"
+        pass
 
     def __repr__(self):
-        return f"Dropout(p={self.p})"
+        return "ReLU()"

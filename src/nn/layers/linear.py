@@ -1,6 +1,7 @@
 import numpy as np
 from nn.module.parameters import Parameters
 
+
 class Linear:
     """Реализует линейный слой сети
 
@@ -16,6 +17,7 @@ class Linear:
     bias : bool (default=True)
         Использовать смещение или нет
     """
+
     def __init__(self, in_dim, out_dim, bias=True):
         self.in_dim = in_dim
         self.hid_dim = out_dim
@@ -44,8 +46,7 @@ class Linear:
             Выход слоя
         """
         self.inpt = inpt
-        # TODO: Реализовать forward pass для линейного слоя
-        forward_pass = None
+        forward_pass = inpt @ self.W.params + self.b.params * self.bias
 
         return forward_pass
 
@@ -55,7 +56,7 @@ class Linear:
 
     def parameters(self):
         """Возвращает параметры модели"""
-        return (self.W, self.b)
+        return self.W, self.b
 
     def _zero_grad(self):
         """Обнуляет градиенты модели"""
@@ -64,12 +65,11 @@ class Linear:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов для линейного слоя
-        self.W.grads = None
+        self.W.grads = self.inpt.T @ grads
 
         if self.bias:
-            self.b.grads = None
-        input_grads = None
+            self.b.grads = np.sum(grads, axis=0)
+        input_grads = grads @ self.W.params.T
         return input_grads
 
     def _train(self):

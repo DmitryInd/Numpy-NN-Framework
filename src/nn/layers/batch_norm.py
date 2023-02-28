@@ -1,6 +1,7 @@
 from nn.module.parameters import Parameters
 import numpy as np
 
+
 class BatchNorm:
     """Реализует Batch norm
 
@@ -22,7 +23,7 @@ class BatchNorm:
     def __init__(self, in_dim, eps=1e-5, momentum=0.1):
         self.in_dim = in_dim
         self.eps = eps
-        self.momentum = 0.1
+        self.momentum = momentum
 
         self.regime = "Train"
 
@@ -53,13 +54,16 @@ class BatchNorm:
             Выход слоя
         """
         if self.regime == "Eval":
-            # TODO: Реализовать batch norm в eval фазе
-            out = None
+            self.inpt_hat = (inpt - self.E) / np.sqrt(self.D + self.eps)
+            out = self.inpt_hat * self.gamma.params + self.beta.params
             return out
 
-        # TODO: Реализовать batch norm в train фазе
-        out = None
+        self.tmp_D = np.var(inpt, axis=0)
+        self.inpt_hat = (inpt - np.mean(inpt, axis=0)) / np.sqrt(self.tmp_D + self.eps)
+        out = self.inpt_hat * self.gamma.params + self.beta.params
 
+        self.D = (1 - self.momentum) * self.D + self.momentum * self.tmp_D
+        self.E = (1 - self.momentum) * self.E + self.momentum * np.mean(inpt, axis=0)
         return out
 
     def __call__(self, *inpt):
@@ -68,7 +72,7 @@ class BatchNorm:
 
     def parameters(self):
         """Возвращает параметры модели"""
-        return (self.gamma, self.beta)
+        return self.gamma, self.beta
 
     def _zero_grad(self):
         """Обнуляет градиенты модели"""
@@ -80,11 +84,9 @@ class BatchNorm:
         if self.regime == "Eval":
             raise RuntimeError("Нельзя посчитать градиенты в режиме оценки")
 
-        # TODO: Реализовать рассчет градиента в batch norm
-
-        self.beta.grads = None
-        self.gamma.grads = None
-        input_grads = None
+        self.beta.grads = grads
+        self.gamma.grads = self.inpt_hat @ grads
+        input_grads = (self.gamma.params @ grads) / np.sqrt(self.tmp_D + self.eps)
         return input_grads
 
     def _train(self):

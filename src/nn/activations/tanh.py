@@ -1,8 +1,9 @@
-import numpy as np
 from nn.module.parameters import Parameters
+import numpy as np
 
-class ReLU:
-    """Реализует ReLU"""
+
+class Tanh:
+    """Реализует гиперболический тангенс"""
 
     def __init__(self):
         self.params = Parameters(1)
@@ -24,8 +25,7 @@ class ReLU:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        # TODO: Реализовать рассчет RELU функции активации
-        self.out = None
+        self.out = np.tanh(inpt)
 
         return self.out
 
@@ -47,8 +47,7 @@ class ReLU:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов
-        input_grads = None
+        input_grads = (1 - self.out) ** 2 @ grads
         return input_grads
 
     def _train(self):
@@ -60,4 +59,4 @@ class ReLU:
         pass
 
     def __repr__(self):
-        return "ReLU()"
+        return "Tanh()"
