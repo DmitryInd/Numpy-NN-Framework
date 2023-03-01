@@ -58,9 +58,12 @@ class Adam:
             grads = param.grads
             param.m = self.beta_1 * param.m + (1 - self.beta_1) * grads
             param.v = self.beta_2 * param.v + (1 - self.beta_2) * grads**2
-
+            m_hat = param.m / (1 - self.beta_1 ** self.t)
+            v_hat = param.v / (1 - self.beta_2 ** self.t)
+            reg = 0
             if self.alpha1 is not None:
-                param.params -= self.lr * self.alpha1 * np.sign(param.params)
+                reg += self.alpha1 * np.sign(param.params)
             if self.alpha2 is not None:
-                param.params -= self.lr * self.alpha2 * param.params
-            param.params -= self.lr * param.m / (np.sqrt(param.v) + self.eps)
+                reg += self.alpha2 * param.params
+
+            param.params -= self.lr * (m_hat / (np.sqrt(v_hat) + self.eps) + reg)
