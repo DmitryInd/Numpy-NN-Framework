@@ -1,5 +1,10 @@
 import time
 
+import numpy as np
+
+from nn.loss_functions.hinge_loss import hinge_loss
+from optimization.adam_optimizer import Adam
+
 
 def progress_bar(iterable, text='Epoch progress', end=''):
     """Мониторинг выполнения эпохи
@@ -57,6 +62,29 @@ def progress_bar(iterable, text='Epoch progress', end=''):
         print(end, end='')
 
 
-def gradient_check(x, y, neural_net):
-    # TODO: Реализуйте проверку градиента
-    pass
+def gradient_check(x, y, neural_net, eps=10**(-5)):
+    optimizer = Adam(neural_net.parameters())
+    for param in neural_net.parameters():
+        loss_function = hinge_loss(neural_net(x), y)
+        optimizer.zero_grad()
+        loss_function.backward()
+        analytical_grad = param.grads.flatten()
+
+        numerical_grad = []
+        for weight in progress_bar(np.nditer(param.params)):
+            weight += eps
+            pos_loss = hinge_loss(neural_net(x), y).loss
+            weight -= 2*eps
+            neg_loss = hinge_loss(neural_net(x), y).loss
+            weight += eps
+            numerical_grad.append((pos_loss - neg_loss)/(2*eps))
+        analytical_grad = np.array(analytical_grad)
+        numerical_grad = np.array(numerical_grad)
+        print(analytical_grad, numerical_grad)
+
+        diff = np.linalg.norm(numerical_grad - analytical_grad)
+        diff /= np.linalg.norm(numerical_grad) + np.linalg.norm(analytical_grad)
+        if diff > eps:
+            return False
+
+    return True
