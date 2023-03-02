@@ -122,12 +122,17 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
         dataloader = Dataloader(dataset, batch_size=batch_size)
 
         train_loss = 0
+        sample_num = 0
+
         for vecs, labels in progress_bar(dataloader):
             loss_function = hinge_loss(model(vecs), labels)
-            train_loss += loss_function.loss
+            train_loss += loss_function.loss * len(labels)
+            sample_num += len(labels)
             optimizer.zero_grad()
             loss_function.backward()
             optimizer.step()
+
+        train_loss /= sample_num
 
         if (epoch + 1) % step == 0 or (epoch + 1) == epochs:
             if (epoch + 1) == epochs and ((epoch + 1) % step != 0):
@@ -140,13 +145,15 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
                                     is_train=False)
 
             train_acc = 0
-            sample_number = 0
+            sample_num = 0
+
             for vecs, labels in progress_bar(dataloader,
                                              text='Evaluating train'):
                 pred_labels = np.argmax(model(vecs).array, axis=-1)
                 train_acc += np.sum(pred_labels == labels)
-                sample_number += len(labels)
-            train_acc /= sample_number
+                sample_num += len(labels)
+
+            train_acc /= sample_num
 
             values['Train loss'] = train_loss
             values['Train acc'] = train_acc
@@ -172,21 +179,23 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
                 train_acc_history.append(train_acc)
 
             if valid_dataset:
-
                 valid_dataloader = Dataloader(valid_dataset,
                                               batch_size=len(valid_dataset),
                                               is_train=False)
 
                 valid_loss = 0
                 valid_acc = 0
-                sample_number = 0
+                sample_num = 0
+
                 for vecs, labels in progress_bar(valid_dataloader,
                                                  text='Evaluating valid'):
                     y_pred = model(vecs)
-                    valid_loss += hinge_loss(y_pred, labels).loss
+                    valid_loss += hinge_loss(y_pred, labels).loss * len(labels)
                     valid_acc += np.sum(np.argmax(y_pred.array, axis=-1) == labels)
-                    sample_number += len(labels)
-                valid_acc /= sample_number
+                    sample_num += len(labels)
+
+                valid_loss /= sample_num
+                valid_acc /= sample_num
 
                 values['Valid loss'] = valid_loss
                 values['Valid acc'] = valid_acc
