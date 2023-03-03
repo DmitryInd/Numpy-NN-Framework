@@ -71,19 +71,18 @@ def gradient_check(x, y, neural_net, eps=10**(-5)):
         analytical_grad = param.grads.flatten()
 
         numerical_grad = []
-        for weight in progress_bar(np.nditer(param.params)):
-            weight += eps
+        for flat_index in progress_bar(range(param.params.size)):
+            index = np.unravel_index(flat_index, param.params.shape)
+            param.params[index] += eps
             pos_loss = hinge_loss(neural_net(x), y).loss
-            weight -= 2*eps
+            param.params[index] -= 2*eps
             neg_loss = hinge_loss(neural_net(x), y).loss
-            weight += eps
+            param.params[index] += eps
             numerical_grad.append((pos_loss - neg_loss)/(2*eps))
-        analytical_grad = np.array(analytical_grad)
         numerical_grad = np.array(numerical_grad)
-        print(analytical_grad, numerical_grad)
 
         diff = np.linalg.norm(numerical_grad - analytical_grad)
-        diff /= np.linalg.norm(numerical_grad) + np.linalg.norm(analytical_grad)
+        diff /= np.linalg.norm(numerical_grad) + np.linalg.norm(analytical_grad) + eps
         if diff > eps:
             return False
 
