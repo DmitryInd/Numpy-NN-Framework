@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+import numpy.random
 
 from nn.loss_functions.hinge_loss import hinge_loss
 from optimization.adam_optimizer import Adam
@@ -50,7 +51,7 @@ def progress_bar(iterable, text='Epoch progress', end=''):
         yield next(iterable)
 
         print('\r', end='')
-        print(' ' * (60 + len(text) + len(str(max_num)) + len(str(it)) \
+        print(' ' * (60 + len(text) + len(str(max_num)) + len(str(it))
                      + len(str(cur_time)) + len(str(approx_time))),
               end='')
         print('\r', end='')
@@ -62,9 +63,10 @@ def progress_bar(iterable, text='Epoch progress', end=''):
         print(end, end='')
 
 
-def gradient_check(x, y, neural_net, eps=10**(-5)):
+def gradient_check(x, y, neural_net, eps=10**(-5), seed=42):
     optimizer = Adam(neural_net.parameters())
     for param in neural_net.parameters():
+        numpy.random.seed(seed)
         loss_function = hinge_loss(neural_net(x), y)
         optimizer.zero_grad()
         loss_function.backward()
@@ -74,8 +76,10 @@ def gradient_check(x, y, neural_net, eps=10**(-5)):
         for flat_index in progress_bar(range(param.params.size)):
             index = np.unravel_index(flat_index, param.params.shape)
             param.params[index] += eps
+            numpy.random.seed(seed)
             pos_loss = hinge_loss(neural_net(x), y).loss
             param.params[index] -= 2*eps
+            numpy.random.seed(seed)
             neg_loss = hinge_loss(neural_net(x), y).loss
             param.params[index] += eps
             numerical_grad.append((pos_loss - neg_loss)/(2*eps))

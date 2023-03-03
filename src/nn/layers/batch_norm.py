@@ -84,9 +84,46 @@ class BatchNorm:
         if self.regime == "Eval":
             raise RuntimeError("Нельзя посчитать градиенты в режиме оценки")
 
-        self.beta.grads = grads
-        self.gamma.grads = self.inpt_hat @ grads
-        input_grads = (self.gamma.params @ grads) / np.sqrt(self.tmp_D + self.eps)
+        batch_size = self.inpt_hat.shape[0]
+
+        # step 9: (x^*gamma) + beta
+        self.beta.grads = np.sum(grads, axis=0)  # (hidden_size, )
+        d_gamma_x_hat = grads  # (batch_size, hidden_size)
+
+        # step 8: x^*gamma
+        self.gamma.grads = np.sum(self.inpt_hat * d_gamma_x_hat, axis=0)  # (hidden_size, )
+        d_x_hat = self.gamma.params * d_gamma_x_hat  # (batch_size, hidden_size)
+
+        # step 7: x^ = (x - mu)/sqrt(D + eps)
+        x_mu = self.inpt_hat * np.sqrt(self.tmp_D + self.eps)
+        d_i_var = np.sum(x_mu * d_x_hat, axis=0)  # (hidden_size, )
+        d_x_mu_1 = 1. / np.sqrt(self.tmp_D + self.eps) * d_x_hat  # (batch_size, hidden_size)
+
+        # step 6: 1/sqrt(D + eps)
+        d_sqrt_var = -1. / (self.tmp_D + self.eps) * d_i_var  # (hidden_size, )
+
+        # step 5: sqrt(D + eps)
+        d_var = 0.5 / np.sqrt(self.tmp_D + self.eps) * d_sqrt_var  # (hidden_size, )
+
+        # step 4: D = sum(deviation**2)/batch_size
+        d_sq_dev = np.ones((batch_size, self.in_dim)) / batch_size * d_var  # (batch_size, hidden_size)
+
+        # step 3: deviation**2 = (x - mu)**2
+        d_x_mu_2 = 2 * x_mu * d_sq_dev  # (batch_size, hidden_size)
+
+        # Unite gradients by (x - mu)
+        d_x_mu = d_x_mu_1 + d_x_mu_2  # (batch_size, hidden_size)
+
+        # step 2: x - mu
+        d_mu = -np.sum(d_x_mu, axis=0)  # (hidden_size, )
+        d_x_1 = d_x_mu  # (batch_size, hidden_size)
+
+        # step 1: mu = sum(x)/batch_size
+        d_x_2 = np.ones((batch_size, self.in_dim)) / batch_size * d_mu  # (batch_size, hidden_size)
+
+        # Unite gradients by input
+        input_grads = d_x_1 + d_x_2  # (batch_size, hidden_size)
+
         return input_grads
 
     def _train(self):

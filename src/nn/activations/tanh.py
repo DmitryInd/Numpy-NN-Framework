@@ -47,7 +47,7 @@ class Tanh:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        input_grads = (1 - self.out) ** 2 @ grads
+        input_grads = (1 - self.out ** 2) * grads
         return input_grads
 
     def _train(self):

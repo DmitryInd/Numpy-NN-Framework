@@ -65,7 +65,7 @@ class Dropout:
         if self.regime == "Eval":
             raise RuntimeError("Нельзя посчитать градиенты в режиме оценки")
 
-        input_grads = self.mask / (1 - self.p) @ grads
+        input_grads = grads * self.mask / (1 - self.p)
         return input_grads
 
     def _train(self):

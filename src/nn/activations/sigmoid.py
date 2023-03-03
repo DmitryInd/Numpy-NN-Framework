@@ -25,7 +25,7 @@ class Sigmoid:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        self.out = 1 / (1 - np.exp(inpt))
+        self.out = 1 / (1 + np.exp(-inpt))
 
         return self.out
 
@@ -47,7 +47,7 @@ class Sigmoid:
 
     def _compute_gradients(self, grads):
         """Считает градиенты модели"""
-        input_grads = self.out * (1 - self.out) @ grads
+        input_grads = self.out * (1 - self.out) * grads
         return input_grads
 
     def _train(self):
