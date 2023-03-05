@@ -1,7 +1,8 @@
-import numpy  as np
+import numpy as np
+
 
 class GD:
-    """Реализует обчный градиентный спуск
+    """Реализует обычный градиентный спуск
 
     ---------
     Параметры
@@ -20,6 +21,7 @@ class GD:
         Если не None, то применяет l_2 регуляризацию
         с параметром alpha_2
     """
+
     def __init__(self, params, lr=3e-4, alpha1=None, alpha2=None):
         self.params = list(params)
         self.lr = lr
